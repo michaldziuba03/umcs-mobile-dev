@@ -101,6 +101,13 @@ class MainActivity : ComponentActivity() {
         return formatter.parse(dateTime)?.time ?: System.currentTimeMillis()
     }
 
+    private fun openSecondActivity(data: String) {
+        val intent = Intent(this, SecondActivity::class.java).apply {
+            putExtra("message", data)
+        }
+        startActivity(intent)
+    }
+
     private fun exitApp() {
         val intent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_HOME)
@@ -182,7 +189,7 @@ class MainActivity : ComponentActivity() {
             }
             // 8.
             Button(
-                onClick = {},
+                onClick = { openSecondActivity(text1) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Open B activity")
