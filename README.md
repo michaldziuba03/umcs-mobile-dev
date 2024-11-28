@@ -1,2 +1,2 @@
 # umcs-mobile-dev
-Android development
+Android development robiony na kolanie
