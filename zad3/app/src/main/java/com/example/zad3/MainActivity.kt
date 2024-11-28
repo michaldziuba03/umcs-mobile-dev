@@ -81,9 +81,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun openMusicPlayer() {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            type = "audio/*"
-        }
+        val intent = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_MUSIC);
         startActivity(intent)
     }
 
@@ -189,7 +187,7 @@ class MainActivity : ComponentActivity() {
             }
             // 8.
             Button(
-                onClick = { openSecondActivity(text1) },
+                onClick = { openSecondActivity("$text1 $text2") },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Open B activity")

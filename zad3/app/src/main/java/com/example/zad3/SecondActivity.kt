@@ -1,5 +1,6 @@
 package com.example.zad3
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,11 +33,22 @@ class SecondActivity : ComponentActivity() {
         }
     }
 
+    private fun goBackToMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+    }
+
     @Composable
     fun SecondScreen(text: String, modifier: Modifier) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Message from Main Activity:")
             Text(text = text)
+            Button(onClick = { finish() }) {
+                Text("Close activity")
+            }
+            Button(onClick = { goBackToMainActivity() }) {
+                Text("Go back to MainActivity")
+            }
         }
     }
 }
