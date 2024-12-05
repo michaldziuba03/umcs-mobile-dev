@@ -1,9 +1,19 @@
 package com.example.zad4
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,16 +44,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.example.zad4.ui.theme.Zad4Theme
 import java.util.Calendar
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        const val CHANNEL_ID = "default_channel"
+        const val NOTIFICATION_ID = 1
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        createNotificationChannel()
         setContent {
             Zad4Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -53,12 +73,62 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "default"
+            val descriptionText = "Kanał domyślny"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)}
+    }
+
+    private fun checkNotificationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private fun sendSimpleNotification(context: Context, title: String, message: String) {
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.clock1)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+        with(NotificationManagerCompat.from(context)) {
+            notify(NOTIFICATION_ID, builder.build())
+        }
+    }
+
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Sample(modifier: Modifier = Modifier) {
         var title by remember { mutableStateOf("") }
         var description by remember { mutableStateOf("") }
         var details by remember { mutableStateOf("") }
+        var permissionGranted by remember { mutableStateOf(checkNotificationPermission()) }
+        val requestPermissionLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            permissionGranted = isGranted
+            if (!isGranted) {
+                Toast.makeText(
+                    this,
+                    "Brak zezwolenia ! Nie można wyświetlić powiadomienia.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
 
         val icons = listOf(
             R.drawable.clock800,
@@ -175,7 +245,14 @@ class MainActivity : ComponentActivity() {
                 Text("Pick alarm time")
             }
 
-            Button(onClick = {}) {
+            val context = LocalContext.current
+            Button(onClick = {
+                if (permissionGranted) {
+                    sendSimpleNotification(context, title, description)
+                } else {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }) {
                 Text("Send notification")
             }
         }
