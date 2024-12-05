@@ -24,9 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import com.example.zad4.ui.theme.Zad4Theme
 import java.util.Calendar
 
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +53,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Sample(modifier: Modifier = Modifier) {
         var title by remember { mutableStateOf("") }
@@ -154,7 +152,26 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            Button(onClick = {}) {
+            var showDialog by remember { mutableStateOf(false) }
+            if (showDialog) {
+                val currentTime = Calendar.getInstance()
+                val timePickerState = rememberTimePickerState(
+                    initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
+                    initialMinute = currentTime.get(Calendar.MINUTE),
+                    is24Hour = true,
+                )
+
+                TimePickerDialog(
+                    onDismiss = { showDialog = false },
+                    onConfirm = { showDialog = false }
+                ) {
+                    TimePicker(
+                        state = timePickerState,
+                    )
+                }
+            }
+
+            Button(onClick = { showDialog = true }) {
                 Text("Pick alarm time")
             }
 
@@ -162,5 +179,27 @@ class MainActivity : ComponentActivity() {
                 Text("Send notification")
             }
         }
+    }
+
+    @Composable
+    fun TimePickerDialog(
+        onDismiss: () -> Unit,
+        onConfirm: () -> Unit,
+        content: @Composable () -> Unit
+    ) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            dismissButton = {
+                TextButton(onClick = { onDismiss() }) {
+                    Text("Dismiss")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { onConfirm() }) {
+                    Text("OK")
+                }
+            },
+            text = { content() }
+        )
     }
 }
